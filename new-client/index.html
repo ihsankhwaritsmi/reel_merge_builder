@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 
+    Copyright (c) 2025 Hares, Ihsan, and Indra
+    All rights reserved.
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merged Video Uploader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="container">
+        <div class="card">
+            <form class="space-y-6">
+                <div class="text-center">
+                    <h1>
+                        Create Your Merged Video
+                    </h1>
+                    <p>
+                        Upload 5 videos and give your creation a title.
+                    </p>
+                    <div id="status-indicator" class="status-indicator" style="display: none;">
+                        <span id="status-text">Ready</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Merged Video Title</label>
+                    <input
+                        id="title"
+                        type="text"
+                        placeholder="e.g., My Awesome Compilation"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Videos (5 Required)</label>
+                    <div id="drop-area" class="drag-drop-area">
+                        <p style="font-size: 1.125rem; font-weight: 600; color: var(--color-text-dark);">Drag & Drop your videos here</p>
+                        <p>or</p>
+                        <label for="video-upload-input" class="browse-button">
+                            <span>Browse files</span>
+                            <input id="video-upload-input" type="file" class="sr-only" accept="video/mp4,video/webm,video/ogg" multiple />
+                        </label>
+                        <p style="font-size: 0.75rem; color: var(--color-text-light); margin-top: 0.5rem;">MP4, WEBM, OGG formats supported</p>
+                    </div>
+                    <ul id="uploaded-file-names" class="uploaded-file-list"></ul>
+                </div>
+
+                <div class="moment-titles-grid">
+                    <div class="form-group">
+                        <label for="moment-title-0">Title for Moment #1</label>
+                        <input
+                            id="moment-title-0"
+                            type="text"
+                            placeholder="e.g., Opening Scene"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="moment-title-1">Title for Moment #2</label>
+                        <input
+                            id="moment-title-1"
+                            type="text"
+                            placeholder="e.g., Mid-action"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="moment-title-2">Title for Moment #3</label>
+                        <input
+                            id="moment-title-2"
+                            type="text"
+                            placeholder="e.g., Highlight Reel"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="moment-title-3">Title for Moment #4</label>
+                        <input
+                            id="moment-title-3"
+                            type="text"
+                            placeholder="e.g., Transition"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="moment-title-4">Title for Moment #5</label>
+                        <input
+                            id="moment-title-4"
+                            type="text"
+                            placeholder="e.g., Grand Finale"
+                        />
+                    </div>
+                </div>
+
+                <button type="submit" class="button">
+                    Merge Videos
+                </button>
+                
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+            </form>
+        </div>
+
+        <div id="video-preview-section" class="video-preview-section card">
+            <h2>Your Processed Video is Ready!</h2>
+            <video
+                src="placeholder.mp4" controls
+                class="video-player"
+            ></video>
+        </div>
+    </main>
+
+    <footer style="text-align: center; padding: 2rem 1rem; margin-top: 0.5rem; color: var(--color-text-light); font-size: 0.875rem; border-top: 1px solid var(--color-border);">
+        <p>&copy; 2025 Hares, Ihsan, and Indra. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
