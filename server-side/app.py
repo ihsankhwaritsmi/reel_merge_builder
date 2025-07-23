@@ -107,41 +107,28 @@ def process_video_background(session_id, main_title, moment_titles, start_time):
             'y_ratio': 0.1
         })
         
-        # Static list of numbers (1., 2., etc.)
-        base_y_position_numbers = 0.2
+        # Configure titles with numbers
+        base_y_position = 0.2
         line_height_offset = 0.05
-        
-        for i in range(len(moment_titles)):
-            number_y_ratio = base_y_position_numbers + (i * line_height_offset)
-            text_configs.append({
-                'text': f"{i+1}.",
-                'start_time': start_time,
-                'duration': total_video_duration - start_time,
-                'fontsize': 35,
-                'y_ratio': number_y_ratio
-            })
-        
-        # Individual clip titles that appear incrementally
         current_cumulative_time = 0
-        title_x_offset_ratio = 0.12
         
         for i, title in enumerate(moment_titles):
-            title_y_ratio = base_y_position_numbers + (i * line_height_offset)
+            y_ratio = base_y_position + (i * line_height_offset)
             
             text_configs.append({
-                'text': title,
+                'text': f"{i+1}. {title}",
                 'start_time': current_cumulative_time,
                 'duration': total_video_duration - current_cumulative_time,
                 'fontsize': 35,
-                'y_ratio': title_y_ratio,
-                'x': f"w*{title_x_offset_ratio}"
+                'y_ratio': y_ratio,
+                'x': 'w*0.1'  # Left-aligned with some padding
             })
             
             current_cumulative_time += video_durations[i]
         
         # Step 4: Add text overlays
         processing_status[session_id].update({'step': 'Adding text overlays...', 'progress': 80})
-        font_file = "../SpecialGothicExpandedOne-Regular.ttf" #!CHANGETHIS
+        font_file = "/Users/hares/Desktop/infor2025/project/videoeditor/reel_merge_builder/server-side/fonts/SpecialGothicExpandedOne-Regular.ttf" #!CHANGETHIS
         
         # Check if font file exists, if not use default
         if not os.path.exists(font_file):
