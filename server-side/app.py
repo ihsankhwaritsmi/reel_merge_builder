@@ -11,13 +11,16 @@ import uuid
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
+from PIL import ImageFont
 
-app = Flask(__name__, template_folder='../new-client', static_folder='../new-client')
-CORS(app)
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, template_folder='../front-end', static_folder='../front-end')
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Configuration
-UPLOAD_FOLDER = 'uploads'
-PROCESSED_FOLDER = 'processed'
+UPLOAD_FOLDER = os.path.join(APP_ROOT, 'uploads')
+PROCESSED_FOLDER = os.path.join(APP_ROOT, 'processed')
 ALLOWED_EXTENSIONS = {'mp4', 'webm', 'ogg', 'avi', 'mov'}
 
 # Create necessary directories
@@ -35,6 +38,20 @@ processing_status = {}  # Track processing status for each session
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def get_video_dimensions(video_path):
+    """Get video width and height using ffprobe"""
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v:0",
+             "-show_entries", "stream=width,height",
+             "-of", "csv=s=x:p=0", video_path],
+            capture_output=True, text=True, check=True
+        )
+        width, height = map(int, result.stdout.strip().split('x'))
+        return width, height
+    except (subprocess.CalledProcessError, ValueError):
+        return 1920, 1080  # Default resolution if error
 
 def get_video_duration(video_path):
     """Get video duration using ffprobe"""
@@ -66,7 +83,7 @@ def get_video_durations_parallel(video_paths):
     # Return durations in the same order as input paths
     return [durations[path] for path in video_paths]
 
-def process_video_background(session_id, main_title, moment_titles, start_time):
+def process_video_background(session_id, main_title, main_title_color, moment_titles, start_time, main_title_y):
     """Background video processing function"""
     try:
         processing_status[session_id] = {'status': 'processing', 'step': 'Starting...', 'progress': 0}
@@ -89,23 +106,94 @@ def process_video_background(session_id, main_title, moment_titles, start_time):
             processing_status[session_id] = {'status': 'error', 'error': 'Video concatenation failed'}
             return
         
-        # Step 2: Get video durations in parallel
-        processing_status[session_id].update({'step': 'Analyzing video durations...', 'progress': 40})
+        # Step 2: Get video durations and dimensions
+        processing_status[session_id].update({'step': 'Analyzing video...', 'progress': 40})
         video_durations = get_video_durations_parallel(input_videos)
         total_video_duration = sum(video_durations)
+        video_width, video_height = get_video_dimensions(concatenated_output)
         
         # Step 3: Configure text overlays
         processing_status[session_id].update({'step': 'Configuring text overlays...', 'progress': 60})
         text_configs = []
         
         # Add main title config
-        text_configs.append({
-            'text': main_title,
-            'start_time': start_time,
-            'duration': total_video_duration - start_time,
-            'fontsize': 50,
-            'y_ratio': 0.1
-        })
+        import re
+        
+        def get_text_width(text, fontsize, font_path="server-side/fonts/SpecialGothicExpandedOne-Regular.ttf"):
+            try:
+                font = ImageFont.truetype(font_path, fontsize)
+                return font.getlength(text)
+            except IOError:
+                # Fallback if font file is not found
+                return len(text) * (fontsize / 2)
+
+        # --- Main Title with Word Wrap ---
+        parts = main_title.split('<<')
+        
+        # First, break down the title into words and their associated colors
+        words_with_colors = []
+        for i, p in enumerate(parts):
+            color = main_title_color
+            text_segment = ""
+
+            if i == 0:
+                text_segment = p
+            elif '>>' in p:
+                color_part, text_part = p.split('>>', 1)
+                color = color_part.strip()
+                text_segment = text_part
+            else:
+                text_segment = p
+
+            # Split segment into words and preserve spaces
+            words = text_segment.split(' ')
+            for j, word in enumerate(words):
+                if word:
+                    # Add space back in, except for the last word of a segment
+                    word_to_add = word + ' ' if j < len(words) - 1 else word
+                    words_with_colors.append({'text': word_to_add, 'color': color})
+
+        # Now, build lines with wrapping
+        lines = []
+        current_line = []
+        current_line_width = 0
+        line_height = 60  # Approx height for fontsize 50
+        padding = 100  # Padding from screen edges
+
+        for word_info in words_with_colors:
+            word_width = get_text_width(word_info['text'], 50)
+            
+            if current_line_width + word_width > video_width - padding and current_line:
+                lines.append({'parts': current_line, 'width': current_line_width})
+                current_line = [word_info]
+                current_line_width = word_width
+            else:
+                current_line.append(word_info)
+                current_line_width += word_width
+        
+        if current_line:
+            lines.append({'parts': current_line, 'width': current_line_width})
+
+        # Generate text_configs for each line
+        base_y = main_title_y
+        for i, line in enumerate(lines):
+            line_y = base_y + (i * line_height)
+            x_offset = 0
+            for part in line['parts']:
+                # Center each line based on its calculated width
+                start_x = (video_width - line['width']) / 2
+                current_x_expression = f'{start_x} + {x_offset}'
+                
+                text_configs.append({
+                    'text': part['text'],
+                    'start_time': start_time,
+                    'duration': total_video_duration - start_time,
+                    'fontsize': 50,
+                    'y': str(line_y),
+                    'fontcolor': part['color'],
+                    'x': current_x_expression
+                })
+                x_offset += get_text_width(part['text'], 50)
         
         # Static list of numbers (1., 2., etc.)
         base_y_position_numbers = 0.2
@@ -118,30 +206,32 @@ def process_video_background(session_id, main_title, moment_titles, start_time):
                 'start_time': start_time,
                 'duration': total_video_duration - start_time,
                 'fontsize': 35,
-                'y_ratio': number_y_ratio
+                'y': f'h*{number_y_ratio}',
+                'fontcolor': '#FFFFFF',
+                'x': '20'
             })
         
         # Individual clip titles that appear incrementally
         current_cumulative_time = 0
-        title_x_offset_ratio = 0.12
         
-        for i, title in enumerate(moment_titles):
+        for i, title_info in enumerate(moment_titles):
             title_y_ratio = base_y_position_numbers + (i * line_height_offset)
             
             text_configs.append({
-                'text': title,
+                'text': title_info['text'],
                 'start_time': current_cumulative_time,
                 'duration': total_video_duration - current_cumulative_time,
                 'fontsize': 35,
-                'y_ratio': title_y_ratio,
-                'x': f"w*{title_x_offset_ratio}"
+                'y': f'h*{title_y_ratio}',
+                'x': '80',
+                'fontcolor': title_info['color']
             })
             
             current_cumulative_time += video_durations[i]
         
         # Step 4: Add text overlays
         processing_status[session_id].update({'step': 'Adding text overlays...', 'progress': 80})
-        font_file = "../SpecialGothicExpandedOne-Regular.ttf" #!CHANGETHIS
+        font_file = "server-side/fonts/SpecialGothicExpandedOne-Regular.ttf"
         
         # Check if font file exists, if not use default
         if not os.path.exists(font_file):
@@ -247,8 +337,10 @@ def process_video():
         
         session_id = data.get('session_id')
         main_title = data.get('main_title', 'Top 5 Moments')
+        main_title_color = data.get('main_title_color', '#FFFFFF')
         moment_titles = data.get('moment_titles', [])
         start_time = float(data.get('start_time', 0))
+        main_title_y = data.get('main_title_y', 10)
         
         if not session_id:
             return jsonify({'error': 'Session ID required'}), 400
@@ -267,7 +359,7 @@ def process_video():
                 return jsonify({'error': f'Video file not found: {os.path.basename(video_path)}'}), 404
         
         # Start background processing
-        executor.submit(process_video_background, session_id, main_title, moment_titles, start_time)
+        executor.submit(process_video_background, session_id, main_title, main_title_color, moment_titles, start_time, main_title_y)
         
         return jsonify({
             'message': 'Video processing started',
