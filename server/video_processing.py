@@ -221,8 +221,10 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
             3: '#CD7F32'  # Bronze/Brown
         }
 
+        moment_titles.reverse()
+
         for i in range(len(moment_titles)):
-            rank = i + 1
+            rank = 5 - i
             number_y_ratio = base_y_position_numbers + (i * line_height_offset)
             color = rank_colors.get(rank, '#FFFFFF')  # Default to white
 
@@ -238,7 +240,7 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
 
         current_cumulative_time = 0
 
-        for i, title_info in enumerate(reversed(moment_titles)):
+        for i, title_info in enumerate(moment_titles):
             title_y_ratio = base_y_position_numbers + (i * line_height_offset)
 
             text_configs.append({
@@ -279,7 +281,5 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
             'download_url': f'/download/{session_id}'
         }
 
-    except Exception as e:
-        processing_status[session_id] = {'status': 'error', 'error': str(e)}
     except Exception as e:
         processing_status[session_id] = {'status': 'error', 'error': str(e)}
