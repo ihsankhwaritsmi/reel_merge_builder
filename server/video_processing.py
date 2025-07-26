@@ -135,6 +135,7 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
         session_folder = os.path.join(upload_folder, session_id)
         input_videos = [os.path.join(
             session_folder, f"video{i}.mp4") for i in range(1, 6)]
+        input_videos.reverse()
 
         # Output paths
         processed_session_folder = os.path.join(processed_folder, session_id)
@@ -237,7 +238,7 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
 
         current_cumulative_time = 0
 
-        for i, title_info in enumerate(moment_titles):
+        for i, title_info in enumerate(reversed(moment_titles)):
             title_y_ratio = base_y_position_numbers + (i * line_height_offset)
 
             text_configs.append({
@@ -278,5 +279,7 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
             'download_url': f'/download/{session_id}'
         }
 
+    except Exception as e:
+        processing_status[session_id] = {'status': 'error', 'error': str(e)}
     except Exception as e:
         processing_status[session_id] = {'status': 'error', 'error': str(e)}
