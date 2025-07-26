@@ -63,7 +63,10 @@ def concatenate_videos(video_paths, output_path):
         "-f", "concat",
         "-safe", "0",
         "-i", concat_list_path,
-        "-c", "copy",
+        "-c:v", "libx264",
+        "-crf", "28",
+        "-c:a", "aac",
+        "-b:a", "128k",
         output_path
     ]
     subprocess.run(command, check=True)
@@ -99,9 +102,13 @@ def add_text_ffmpeg(input_video, output_video, text_configs, font_file):
     command = [
         "ffmpeg",
         "-y",
+        "-hwaccel", "auto",
         "-i", input_video,
         "-vf", ",".join(filter_complex),
-        "-c:a", "copy",
+        "-c:v", "libx264",
+        "-crf", "28",
+        "-c:a", "aac",
+        "-b:a", "128k",
         output_video
     ]
     try:
@@ -144,11 +151,16 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
         processing_status[session_id].update({'step': 'Configuring text overlays...', 'progress': 60})
         text_configs = []
         
-        def get_text_width(text, fontsize, font_path="fonts/SpecialGothicExpandedOne-Regular.ttf"):
-            try:
-                font = ImageFont.truetype(font_path, fontsize)
+        font_path = "fonts/SpecialGothicExpandedOne-Regular.ttf"
+        try:
+            font = ImageFont.truetype(font_path, 50)
+        except IOError:
+            font = None
+
+        def get_text_width(text, fontsize, font=font):
+            if font:
                 return font.getlength(text)
-            except IOError:
+            else:
                 return len(text) * (fontsize / 2)
 
         import json

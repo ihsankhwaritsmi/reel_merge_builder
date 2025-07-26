@@ -98,7 +98,6 @@ async def process_video(
         main_title_color,
         moment_titles_list,
         start_time,
-        100, # Hardcoded Y position
         processing_status,
         UPLOAD_FOLDER,
         PROCESSED_FOLDER

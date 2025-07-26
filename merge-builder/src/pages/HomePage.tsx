@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../redux/store';
 import VideoUpload from '../components/builder/VideoUpload';
@@ -8,6 +8,7 @@ import MergeButton from '../components/builder/MergeButton';
 
 const HomePage: React.FC = () => {
   const { status, downloadUrl, sessionId } = useSelector((state: RootState) => state.app);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
 
   return (
     <div className="bg-gray-100 min-h-screen w-full">
@@ -20,7 +21,7 @@ const HomePage: React.FC = () => {
         <div className="w-full">
           {status !== 'completed' ? (
             <div className="space-y-8">
-              <VideoUpload />
+              <VideoUpload onFilesSelected={setVideoFiles} />
               <Subtitles />
               <MainTitle />
             </div>
@@ -34,15 +35,17 @@ const HomePage: React.FC = () => {
                   <video
                     src={`http://localhost:8000/preview/${sessionId}`}
                     controls
-                    className="w-full rounded-lg shadow-md"
+                    className="rounded-lg shadow-md w-full max-w-lg mx-auto"
                   ></video>
+
+                  {/* <MergeButton videoFiles={videoFiles} /> */}
                 </div>
               )}
             </div>
           )}
           
           <div className="mt-8">
-            <MergeButton />
+            <MergeButton videoFiles={videoFiles} />
           </div>
         </div>
       </div>

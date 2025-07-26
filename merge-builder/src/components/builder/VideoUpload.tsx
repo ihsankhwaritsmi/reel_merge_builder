@@ -1,9 +1,16 @@
-import React from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { setVideos } from '../../redux/appSlice';
+import type { RootState } from '../../redux/store';
 
-const VideoUpload: React.FC = () => {
+interface VideoUploadProps {
+  onFilesSelected: (files: File[]) => void;
+}
+
+const VideoUpload: React.FC<VideoUploadProps> = ({ onFilesSelected }) => {
   const dispatch = useDispatch();
+  const { videos } = useSelector((state: RootState) => state.app);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -12,7 +19,9 @@ const VideoUpload: React.FC = () => {
         alert('Please select exactly 5 videos.');
         return;
       }
-      dispatch(setVideos(files));
+      setVideoFiles(files);
+      onFilesSelected(files);
+      dispatch(setVideos(files.map(file => URL.createObjectURL(file))));
     }
   };
 
@@ -47,6 +56,18 @@ const VideoUpload: React.FC = () => {
           <input id="dropzone-file" type="file" className="hidden" multiple onChange={handleFileChange} />
         </label>
       </div>
+      {videos.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800">Uploaded Videos</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {videos.map((video, index) => (
+              <div key={index} className="rounded-lg overflow-hidden shadow-lg">
+                <video src={video} controls className="w-full h-auto"></video>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

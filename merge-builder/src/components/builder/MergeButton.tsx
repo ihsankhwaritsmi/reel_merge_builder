@@ -12,9 +12,12 @@ import {
 
 const API_URL = 'http://localhost:8000';
 
-const MergeButton: React.FC = () => {
+interface MergeButtonProps {
+  videoFiles: File[];
+}
+
+const MergeButton: React.FC<MergeButtonProps> = ({ videoFiles }) => {
   const {
-    videos,
     mainTitle,
     mainTitleColor,
     subtitles,
@@ -26,7 +29,7 @@ const MergeButton: React.FC = () => {
   const dispatch = useDispatch();
 
   const handleMerge = async () => {
-    if (videos.length !== 5) {
+    if (videoFiles.length !== 5) {
       alert('Please select exactly 5 videos.');
       return;
     }
@@ -35,7 +38,7 @@ const MergeButton: React.FC = () => {
     dispatch(setProgress(0));
 
     const formData = new FormData();
-    videos.forEach((video) => {
+    videoFiles.forEach((video) => {
       formData.append('videos', video);
     });
 

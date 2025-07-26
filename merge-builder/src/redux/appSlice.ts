@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface AppState {
-  videos: File[];
+  videos: string[];
   subtitles: string[];
   mainTitle: { text: string; color: string }[][];
   mainTitleColor: string;
@@ -28,7 +28,7 @@ const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    setVideos: (state, action: PayloadAction<File[]>) => {
+    setVideos: (state, action: PayloadAction<string[]>) => {
       state.videos = action.payload;
     },
     setSubtitles: (state, action: PayloadAction<string[]>) => {
