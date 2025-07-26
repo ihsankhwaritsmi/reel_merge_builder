@@ -44,8 +44,8 @@ const MainTitle: React.FC = () => {
                 style={{
                   color: word.color,
                   cursor: 'pointer',
-                  margin: `0 ${wordSpacing / 2}px`,
-                  padding: '4px 8px',
+                  margin: `0 ${wordSpacing / 4}px`,
+                  padding: '4px 0px',
                   borderRadius: '6px',
                   fontSize: '1.5rem',
                   fontWeight: 'bold',
@@ -102,7 +102,7 @@ const MainTitle: React.FC = () => {
           <label className="block text-md font-semibold text-gray-700 mb-2">Word Spacing</label>
           <input
             type="range"
-            min="0"
+            min="10"
             max="50"
             value={wordSpacing}
             onChange={(e) => dispatch(setWordSpacing(parseInt(e.target.value)))}

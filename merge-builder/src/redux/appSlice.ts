@@ -19,7 +19,7 @@ const initialState: AppState = {
   mainTitle: [[{ text: 'Top 5 Moments', color: '#FFFFFF' }]],
   mainTitleColor: '#FFFFFF',
   startTime: 0,
-  wordSpacing: 0,
+  wordSpacing: 10,
   sessionId: null,
   status: 'idle',
   progress: 0,
