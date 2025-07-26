@@ -46,7 +46,7 @@ dropArea.addEventListener("drop", handleDrop, false);
 fileInput.addEventListener("change", handleFileSelect, false);
 
 // Handle form submission
-submitButton.addEventListener("click", handleFormSubmit);
+form.addEventListener("submit", handleFormSubmit);
 
 function preventDefaults(e) {
   e.preventDefault();
@@ -341,22 +341,9 @@ async function pollProcessingStatus(sessionId) {
         submitButton.textContent = "Processing Complete! ✅";
         updateStatus("completed", "Video processing completed successfully!");
 
-        // Show video preview
+        // Fetch and show the video
         setTimeout(() => {
-          showVideoPreview(`${API_BASE_URL}/preview/${sessionId}`);
-
-          // Change button to show completion status
-          submitButton.textContent = "Video Ready - Process Another?";
-          submitButton.disabled = false;
-          submitButton.classList.remove("processing");
-          submitButton.classList.add("completed");
-          progressContainer.style.display = "none";
-          progressBar.style.width = "0%";
-
-          updateStatus("completed", "Your merged video is ready for download!");
-
-          // Add download button
-          addDownloadButton();
+          fetchAndShowVideo(sessionId);
         }, 1500);
       } else if (status.status === "error") {
         clearInterval(statusInterval);
@@ -379,19 +366,46 @@ async function pollProcessingStatus(sessionId) {
   }, 2000); // Poll every 2 seconds
 }
 
-function showVideoPreview(videoUrl) {
-  videoPlayer.src = videoUrl;
-  videoPreviewSection.style.display = "block";
-  videoPlayer.load(); // Load the new video source
+async function fetchAndShowVideo(sessionId) {
+  try {
+    updateStatus("completed", "Fetching processed video...");
 
-  // Scroll to the video preview section
-  videoPreviewSection.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
+    const response = await fetch(`${API_BASE_URL}/preview/${sessionId}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch video for preview.");
+    }
+
+    const videoBlob = await response.blob();
+    const videoUrl = URL.createObjectURL(videoBlob);
+
+    videoPlayer.src = videoUrl;
+    videoPreviewSection.style.display = "block";
+    videoPlayer.load();
+
+    videoPreviewSection.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    // Update UI now that video is ready
+    submitButton.textContent = "Video Ready - Process Another?";
+    submitButton.disabled = false;
+    submitButton.classList.remove("processing");
+    submitButton.classList.add("completed");
+    progressContainer.style.display = "none";
+    progressBar.style.width = "0%";
+    updateStatus("completed", "Your merged video is ready for download!");
+
+    // Add the download button
+    addDownloadButton(sessionId);
+  } catch (error) {
+    console.error("Error fetching video:", error);
+    alert(`Could not load video preview: ${error.message}`);
+    updateStatus("error", "Failed to load video preview.");
+  }
 }
 
-function addDownloadButton() {
+function addDownloadButton(sessionId) {
   // Check if download button already exists
   if (document.getElementById("download-button")) {
     return;
@@ -404,9 +418,37 @@ function addDownloadButton() {
   downloadButton.textContent = "Download Video";
   downloadButton.style.marginTop = "1rem";
 
-  downloadButton.addEventListener("click", () => {
-    if (sessionId) {
-      window.open(`${API_BASE_URL}/download/${sessionId}`, "_blank");
+  downloadButton.addEventListener("click", async () => {
+    if (!sessionId) return;
+
+    downloadButton.textContent = "Downloading...";
+    downloadButton.disabled = true;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/download/${sessionId}`);
+      if (!response.ok) {
+        throw new Error("Download failed.");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a temporary link to trigger the download
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = `merged_video_${sessionId}.mp4`; // Set the file name
+      document.body.appendChild(a);
+      a.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error("Download error:", error);
+      alert(`Failed to download video: ${error.message}`);
+    } finally {
+      downloadButton.textContent = "Download Video";
+      downloadButton.disabled = false;
     }
   });
 
