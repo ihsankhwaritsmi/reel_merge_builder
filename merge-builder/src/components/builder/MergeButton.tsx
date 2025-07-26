@@ -22,6 +22,7 @@ const MergeButton: React.FC<MergeButtonProps> = ({ videoFiles }) => {
     mainTitleColor,
     subtitles,
     startTime,
+    wordSpacing,
     status,
     progress,
     downloadUrl,
@@ -68,7 +69,9 @@ const MergeButton: React.FC<MergeButtonProps> = ({ videoFiles }) => {
       const momentTitles = subtitles.map((text) => ({ text, color: '#FFFFFF' }));
       processFormData.append('moment_titles', JSON.stringify(momentTitles));
       processFormData.append('start_time', startTime.toString());
+      processFormData.append('word_spacing', wordSpacing.toString());
 
+      console.log('Process Form Data:', processFormData.getAll);
       await axios.post(`${API_URL}/process`, processFormData);
 
       // Step 3: Poll for status
@@ -91,6 +94,7 @@ const MergeButton: React.FC<MergeButtonProps> = ({ videoFiles }) => {
       };
 
       pollStatus();
+      console.log(processFormData);
     } catch (error) {
       dispatch(setStatus('error'));
       console.error('Error during merge process:', error);

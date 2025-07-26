@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../../redux/store';
-import { setMainTitle, updateWordColor, setMainTitleColor, setStartTime } from '../../redux/appSlice';
+import { setMainTitle, updateWordColor, setMainTitleColor, setStartTime, setWordSpacing } from '../../redux/appSlice';
 
 const MainTitle: React.FC = () => {
-  const { mainTitle, mainTitleColor, startTime } = useSelector((state: RootState) => state.app);
+  const { mainTitle, mainTitleColor, startTime, wordSpacing } = useSelector((state: RootState) => state.app);
   const dispatch = useDispatch();
 
   const [inputValue, setInputValue] = useState(mainTitle.map(line => line.map(word => word.text).join(' ')).join('\n'));
@@ -34,7 +34,7 @@ const MainTitle: React.FC = () => {
     <div className="mb-6 p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Main Title</h2>
       
-      <div className="p-4 border-2 border-dashed rounded-lg mb-4 bg-gray-50" style={{ minHeight: '120px' }}>
+      <div className="p-4 border-2 border-dashed rounded-lg mb-4 bg-black" style={{ minHeight: '120px' }}>
         {mainTitle.map((line, lineIndex) => (
           <div key={lineIndex} className="flex flex-wrap items-center justify-center">
             {line.map((word, wordIndex) => (
@@ -44,7 +44,7 @@ const MainTitle: React.FC = () => {
                 style={{
                   color: word.color,
                   cursor: 'pointer',
-                  margin: '0.25em',
+                  margin: `0 ${wordSpacing / 2}px`,
                   padding: '4px 8px',
                   borderRadius: '6px',
                   fontSize: '1.5rem',
@@ -96,6 +96,17 @@ const MainTitle: React.FC = () => {
             value={startTime}
             onChange={(e) => dispatch(setStartTime(parseFloat(e.target.value)))}
             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-gray-800"
+          />
+        </div>
+        <div>
+          <label className="block text-md font-semibold text-gray-700 mb-2">Word Spacing</label>
+          <input
+            type="range"
+            min="0"
+            max="50"
+            value={wordSpacing}
+            onChange={(e) => dispatch(setWordSpacing(parseInt(e.target.value)))}
+            className="w-full h-12 p-1 border-2 border-gray-300 rounded-lg cursor-pointer"
           />
         </div>
       </div>

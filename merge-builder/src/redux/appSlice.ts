@@ -6,6 +6,7 @@ interface AppState {
   mainTitle: { text: string; color: string }[][];
   mainTitleColor: string;
   startTime: number;
+  wordSpacing: number;
   sessionId: string | null;
   status: string;
   progress: number;
@@ -15,9 +16,10 @@ interface AppState {
 const initialState: AppState = {
   videos: [],
   subtitles: Array(5).fill(''),
-  mainTitle: [[{ text: 'Top 5 Moments', color: '#000000' }]],
-  mainTitleColor: '#000000',
+  mainTitle: [[{ text: 'Top 5 Moments', color: '#FFFFFF' }]],
+  mainTitleColor: '#FFFFFF',
   startTime: 0,
+  wordSpacing: 0,
   sessionId: null,
   status: 'idle',
   progress: 0,
@@ -47,6 +49,9 @@ const appSlice = createSlice({
     setStartTime: (state, action: PayloadAction<number>) => {
       state.startTime = action.payload;
     },
+    setWordSpacing: (state, action: PayloadAction<number>) => {
+      state.wordSpacing = action.payload;
+    },
     setSessionId: (state, action: PayloadAction<string | null>) => {
       state.sessionId = action.payload;
     },
@@ -70,6 +75,7 @@ export const {
   updateWordColor,
   setMainTitleColor,
   setStartTime,
+  setWordSpacing,
   setSessionId,
   setStatus,
   setProgress,
