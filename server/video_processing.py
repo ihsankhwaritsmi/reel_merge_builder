@@ -118,7 +118,7 @@ def add_text_ffmpeg(input_video, output_video, text_configs, font_file):
         print(e.stderr)
         raise
 
-def process_video_background(session_id, main_title, main_title_color, moment_titles, start_time, processing_status, upload_folder, processed_folder):
+def process_video_background(session_id, main_title, main_title_color, moment_titles, start_time, word_spacing, processing_status, upload_folder, processed_folder):
     """Background video processing function"""
     try:
         processing_status[session_id] = {'status': 'processing', 'step': 'Starting...', 'progress': 0}
@@ -173,8 +173,8 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
         for i, line in enumerate(lines_data):
             line_y = base_y + (i * line_height)
             
-            # Calculate total width of the line
-            line_width = sum(get_text_width(word['text'], 50) for word in line)
+            # Calculate total width of the line with spacing
+            line_width = sum(get_text_width(word['text'], 50) for word in line) + (len(line) - 1) * word_spacing
             
             # Calculate starting x for centered alignment
             start_x = (video_width - line_width) / 2
@@ -192,7 +192,7 @@ def process_video_background(session_id, main_title, main_title_color, moment_ti
                     'fontcolor': part['color'],
                     'x': current_x_expression
                 })
-                x_offset += get_text_width(part['text'], 50)
+                x_offset += get_text_width(part['text'], 50) + word_spacing
 
         
         base_y_position_numbers = 0.2

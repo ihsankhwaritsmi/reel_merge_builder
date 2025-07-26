@@ -79,6 +79,7 @@ async def process_video(
     main_title_color: str = Form(...),
     moment_titles: str = Form(...), # JSON string
     start_time: float = Form(...),
+    word_spacing: int = Form(10),
 ):
     import json
     moment_titles_list = json.loads(moment_titles)
@@ -98,6 +99,7 @@ async def process_video(
         main_title_color,
         moment_titles_list,
         start_time,
+        word_spacing,
         processing_status,
         UPLOAD_FOLDER,
         PROCESSED_FOLDER
